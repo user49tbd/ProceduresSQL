@@ -1,0 +1,122 @@
+CREATE DATABASE PROD
+GO
+USE PROD
+GO
+CREATE TABLE PRODUTO
+(
+CODIGO            INT                NOT NULL,        
+NOME            VARCHAR(50)        NOT NULL,
+VALOR            NUMERIC(6,2)    NOT NULL
+PRIMARY KEY (CODIGO)
+)
+GO
+CREATE TABLE TABI
+(
+CODIGO_TRANSACAO            INT            NOT NULL,
+CODIGO_PRODUTO                INT            NOT NULL,
+QTD                            INT            NOT NULL,
+TOTVal                        NUMERIC(30,2)    NOT NULL
+PRIMARY KEY(CODIGO_TRANSACAO)
+)
+GO
+CREATE TABLE TABO
+(
+CODIGO_TRANSACAO            INT            NOT NULL,
+CODIGO_PRODUTO                INT            NOT NULL,
+QTD                            INT            NOT NULL,
+TOTVal                        NUMERIC(30,2)    NOT NULL
+PRIMARY KEY(CODIGO_TRANSACAO)
+)
+GO
+CREATE TABLE ALPHA
+(
+LI        INT            NOT NULL,
+LETTER    VARCHAR(01) NOT NULL
+)
+GO
+INSERT INTO ALPHA
+VALUES
+(1,'A'),
+(2,'B'),
+(3,'C'),
+(4,'D'),
+(5,'E'),
+(6,'F'),
+(7,'G'),
+(8,'H'),
+(9,'I'),
+(10,'J'),
+(11,'K')
+GO
+CREATE PROCEDURE LET(@VAL VARCHAR(MAX) OUTPUT)
+AS
+    DECLARE @I INT,
+            @TXT VARCHAR(MAX),
+            @VALR INT
+    SET @I = 1
+    SET @TXT = ''
+    SET @VAL = ''
+    SET @VALR = 0
+    WHILE(@I <= ((RAND()*25)+1))
+    BEGIN
+        SET @VALR = ((RAND()*10)+1)
+        SET @TXT = (SELECT DISTINCT AL.LETTER FROM ALPHA AL WHERE AL.LI = @VALR)
+        SET @VAL = CONCAT(@VAL,@TXT)
+        PRINT(@I)
+        PRINT(@VAL)
+        SET @I = @I + 1
+    END
+GO
+CREATE PROCEDURE PRODGEN
+AS
+    DECLARE @QUERY VARCHAR(MAX),
+            @INDEX INT,
+            @VALT  VARCHAR(MAX),
+            @TOTTER INT
+    SET @INDEX = 1
+    WHILE(@INDEX <= ((RAND()*25)+10))
+    BEGIN
+        EXEC LET @VALT OUTPUT
+        SET @TOTTER = ((RAND()*91)+10)
+        /*
+        SET @QUERY = 'INSERT INTO PRODUTO VALUES ('+CAST(@INDEX AS VARCHAR(30))+','''+@VALT+''','''+
+        CAST(@TOTTER AS VARCHAR(30))+')'
+        */
+        INSERT INTO PRODUTO VALUES (@INDEX,@VALT,@TOTTER)
+        SET @INDEX = @INDEX + 1
+    END
+GO EXEC PRODGEN
+SELECT * FROM PRODUTO
+GO
+CREATE PROCEDURE SP_MAIN(@TPOPS CHAR(1),@CODPRO INT,@QTDOPS INT,@TRANSCOD INT) 
+AS
+    DECLARE @OPTM VARCHAR(MAX),
+            @VAL  INT
+    SET @VAL = (SELECT P.VALOR FROM PRODUTO P WHERE P.CODIGO = @CODPRO)
+    SET @VAL = @QTDOPS*@VAL
+    SET @OPTM = ''
+    IF(@TPOPS = 'E')
+    BEGIN
+        INSERT INTO TABI VALUES (@TRANSCOD,@CODPRO,@QTDOPS,@VAL)
+    END
+    ELSE
+    BEGIN
+    IF(@TPOPS = 'S')
+    BEGIN
+        INSERT INTO TABO VALUES (@TRANSCOD,@CODPRO,@QTDOPS,@VAL)
+        PRINT ('OK')
+    END
+    END
+    IF (@TPOPS != 'E' OR @TPOPS != 'S')
+    BEGIN
+        RAISERROR('OPERACAO INVALIDA',16,1) 
+    END DECLARE 
+@TP CHAR(1),
+@PCOD INT,
+@QTD INT,
+@TRA INT
+SET @TP    = 'E'
+SET @PCOD = 1
+SET @QTD = 20
+SET @TRA = 1
+EXEC SP_MAIN @TP,@PCOD,@QTD,@TRA SELECT *,'COMPRA' FROM TABI
